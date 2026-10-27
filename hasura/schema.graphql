@@ -1,0 +1,56 @@
+type SrvApplicant360 {
+  applicant_id: ID!
+  origin_country: String!
+  origin_country_code: String!
+  kyc_status: String!
+  study_permit_status: String!
+  risk_tier: String!
+  root_application_id: String!
+  active_application_id: String!
+  original_intake_cohort: String!
+  active_intake_cohort: String!
+  deferral_count: Int!
+  lineage_link_method: String!
+  requires_manual_lineage_review: Boolean!
+  deferral_lineage_breadcrumb: String!
+  institution_id: String!
+  dli_number: String!
+  institution_name: String!
+  province_code: String!
+  program_name: String!
+  program_category: String!
+  all_screenings_passed: Boolean!
+  avg_screening_score: Float!
+  initial_guarantor_id: String!
+  active_guarantor_id: String!
+  guarantor_replacement_hops: Int!
+  guarantor_chain_breadcrumb: String!
+  active_guarantor_credit_band: String!
+  active_guarantor_income_cad: Float!
+  loan_id: String!
+  loan_status: String!
+  is_funded: Boolean!
+  approved_principal_cad: Float!
+  disbursed_total_cad: Float!
+  net_fee_revenue_cad: Float!
+  had_fee_reversal: Boolean!
+  first_touch_channel: String!
+  last_touch_channel: String!
+  stitched_touch_count: Int!
+}
+
+type SrvOpsWorkqueue {
+  work_item_id: ID!
+  applicant_id: String!
+  entity_id: String!
+  queue_type: String!
+  priority: String!
+  reason_summary: String!
+  metric_value: Int!
+}
+
+type Query {
+  applicant_360(limit: Int = 50, active_intake_cohort: String): [SrvApplicant360!]!
+  applicant_360_by_pk(applicant_id: ID!): SrvApplicant360
+  ops_workqueue(queue_type: String, priority: String): [SrvOpsWorkqueue!]!
+}

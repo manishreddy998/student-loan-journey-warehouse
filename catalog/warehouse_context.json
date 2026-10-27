@@ -1,0 +1,542 @@
+{
+  "warehouse": "student_loan_journey",
+  "model_count": 22,
+  "canonical_metrics": [
+    {
+      "metric_name": "active_loan_commitment_cad",
+      "model": "marts.fct_applicant_milestones",
+      "sql_expression": "SUM(approved_principal_cad)",
+      "business_rule": "Sums approved principal across active non-superseded applications only; excludes superseded intake deferrals and declined underwriting."
+    },
+    {
+      "metric_name": "net_settled_fee_revenue_cad",
+      "model": "marts.fct_payment_fee_ledger",
+      "sql_expression": "SUM(signed_fee_revenue_cad)",
+      "business_rule": "Sums settled application processing and origination fees minus reversed/refunded fee entries."
+    },
+    {
+      "metric_name": "position_based_cac_cad",
+      "model": "marts.fct_marketing_attribution",
+      "sql_expression": "SUM(ad_spend_cad) / SUM(CASE WHEN is_funded_loan THEN position_based_weight ELSE 0 END)",
+      "business_rule": "Allocates 40% credit to first touch, 40% to last pre-signup touch, and 20% to middle touches across deduplicated click IDs."
+    },
+    {
+      "metric_name": "cohort_funded_conversion_rate_pct",
+      "model": "marts.agg_cohort_funnel_kpis",
+      "sql_expression": "100.0 * SUM(CASE WHEN is_funded THEN 1 ELSE 0 END) / COUNT(DISTINCT applicant_id)",
+      "business_rule": "Measured on canonical root applicants assigned to their active post-deferral intake cohort."
+    }
+  ],
+  "bigquery_partition_cluster_discipline": {
+    "tables_configured": 7,
+    "estimated_unpartitioned_bytes": 15283520,
+    "estimated_pruned_bytes": 2139692,
+    "bytes_scanned_reduction_pct": 86.0,
+    "tables": [
+      {
+        "table": "raw.debezium_cdc_log",
+        "rows": 25760,
+        "partition_by": "DATE(event_ts)",
+        "cluster_by": "source_table, pk_value",
+        "unpartitioned_bytes": 8243200,
+        "partition_pruned_bytes": 1154048
+      },
+      {
+        "table": "dimensions.dim_applicant_scd2",
+        "rows": 4500,
+        "partition_by": "DATE(valid_from)",
+        "cluster_by": "applicant_id, is_current, origin_country_code",
+        "unpartitioned_bytes": 1440000,
+        "partition_pruned_bytes": 201600
+      },
+      {
+        "table": "dimensions.dim_loan_status_scd2",
+        "rows": 5400,
+        "partition_by": "DATE(valid_from)",
+        "cluster_by": "loan_id, applicant_id, is_current",
+        "unpartitioned_bytes": 1728000,
+        "partition_pruned_bytes": 241920
+      },
+      {
+        "table": "marts.fct_applicant_milestones",
+        "rows": 1500,
+        "partition_by": "DATE(submitted_at)",
+        "cluster_by": "active_intake_cohort, institution_id, is_funded",
+        "unpartitioned_bytes": 480000,
+        "partition_pruned_bytes": 67200
+      },
+      {
+        "table": "marts.fct_loan_stage_transitions",
+        "rows": 5400,
+        "partition_by": "DATE(valid_from)",
+        "cluster_by": "loan_status, applicant_id",
+        "unpartitioned_bytes": 1728000,
+        "partition_pruned_bytes": 241920
+      },
+      {
+        "table": "marts.fct_payment_fee_ledger",
+        "rows": 5195,
+        "partition_by": "DATE(settled_at)",
+        "cluster_by": "payment_type, direction, applicant_id",
+        "unpartitioned_bytes": 1662400,
+        "partition_pruned_bytes": 232736
+      },
+      {
+        "table": "marts.fct_marketing_attribution",
+        "rows": 6,
+        "partition_by": "DATE(first_click_ts)",
+        "cluster_by": "first_touch_channel, last_touch_channel, is_funded",
+        "unpartitioned_bytes": 1920,
+        "partition_pruned_bytes": 268
+      }
+    ]
+  },
+  "models": [
+    {
+      "model_name": "agg_cohort_funnel_kpis",
+      "schema": "marts",
+      "relation": "marts.agg_cohort_funnel_kpis",
+      "materialized": "table",
+      "explicit_grain": "1 row per (active_intake_cohort, province_code, program_category)",
+      "description": "Executive cohort conversion funnel and financial KPI aggregate table by intake cohort, province, and program category.",
+      "row_count": 55,
+      "columns": [
+        {
+          "name": "active_intake_cohort",
+          "description": "Active intake cohort after resolving deferrals."
+        },
+        {
+          "name": "province_code",
+          "description": "Canadian province code of partner DLI."
+        }
+      ]
+    },
+    {
+      "model_name": "dim_applicant_scd2",
+      "schema": "dimensions",
+      "relation": "dimensions.dim_applicant_scd2",
+      "materialized": "table",
+      "explicit_grain": "1 row per (applicant_id, version_num) SCD Type 2 state interval",
+      "description": "Kimball SCD Type 2 applicant dimension tracking point-in-time KYC, risk tier, and study permit changes.",
+      "row_count": 4500,
+      "columns": [
+        {
+          "name": "applicant_version_sk",
+          "description": "Surrogate key for point-in-time applicant version."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Natural key for applicant."
+        },
+        {
+          "name": "valid_from",
+          "description": "Effective start timestamp for this SCD2 version."
+        },
+        {
+          "name": "valid_to",
+          "description": "Effective end timestamp (9999-12-31 for current version)."
+        },
+        {
+          "name": "is_current",
+          "description": "True if this row is the latest active version for the applicant."
+        }
+      ]
+    },
+    {
+      "model_name": "dim_loan_status_scd2",
+      "schema": "dimensions",
+      "relation": "dimensions.dim_loan_status_scd2",
+      "materialized": "table",
+      "explicit_grain": "1 row per (loan_id, version_num) SCD Type 2 underwriting stage interval",
+      "description": "Kimball SCD Type 2 loan contract dimension tracking underwriting and disbursement state transitions.",
+      "row_count": 5400,
+      "columns": [
+        {
+          "name": "loan_version_sk",
+          "description": "Surrogate key for point-in-time loan contract version."
+        },
+        {
+          "name": "loan_id",
+          "description": "Natural key for loan contract."
+        },
+        {
+          "name": "is_current",
+          "description": "True if this row is the latest active version for the loan contract."
+        }
+      ]
+    },
+    {
+      "model_name": "dim_program_institution",
+      "schema": "dimensions",
+      "relation": "dimensions.dim_program_institution",
+      "materialized": "table",
+      "explicit_grain": "1 row per partner Designated Learning Institution (institution_id)",
+      "description": "Conformed Kimball dimension for partner post-secondary Designated Learning Institutions (DLIs).",
+      "row_count": 30,
+      "columns": [
+        {
+          "name": "institution_id",
+          "description": "Primary key for partner DLI institution."
+        },
+        {
+          "name": "dli_number",
+          "description": "Official Canadian Designated Learning Institution number."
+        }
+      ]
+    },
+    {
+      "model_name": "fct_applicant_milestones",
+      "schema": "marts",
+      "relation": "marts.fct_applicant_milestones",
+      "materialized": "table",
+      "explicit_grain": "1 row per canonical applicant_id (active intake cohort, active guarantor, funded loan)",
+      "description": "Kimball fact table at explicit 1-row-per-applicant grain combining SCD2 current state, resolved intake deferral lineage, active guarantor, screening outcomes, and reconciled loan/fee ledger totals.",
+      "row_count": 1500,
+      "columns": [
+        {
+          "name": "applicant_id",
+          "description": "Primary key (1 row per canonical applicant, never fanned out by deferrals or guarantor replacements)."
+        },
+        {
+          "name": "active_application_id",
+          "description": "Current non-superseded application ID."
+        },
+        {
+          "name": "active_guarantor_id",
+          "description": "Current verified/terminal guarantor ID."
+        },
+        {
+          "name": "loan_id",
+          "description": "Associated loan contract ID."
+        }
+      ]
+    },
+    {
+      "model_name": "fct_loan_stage_transitions",
+      "schema": "marts",
+      "relation": "marts.fct_loan_stage_transitions",
+      "materialized": "table",
+      "explicit_grain": "1 row per loan_version_sk stage interval with hours_in_stage",
+      "description": "Kimball accumulating/transactional stage fact table over SCD Type 2 loan contract status versions.",
+      "row_count": 5400,
+      "columns": [
+        {
+          "name": "loan_version_sk",
+          "description": "Unique surrogate key per loan status version."
+        },
+        {
+          "name": "loan_id",
+          "description": "Loan contract natural key."
+        }
+      ]
+    },
+    {
+      "model_name": "fct_marketing_attribution",
+      "schema": "marts",
+      "relation": "marts.fct_marketing_attribution",
+      "materialized": "table",
+      "explicit_grain": "1 row per acquisition channel_name with CAC and ROAS across 3 attribution models",
+      "description": "Channel-level marketing attribution mart comparing First-Touch, Last-Touch, and Position-Based (40/20/40) funded loans, CAC, and ROAS.",
+      "row_count": 6,
+      "columns": [
+        {
+          "name": "channel_name",
+          "description": "Unique acquisition channel name."
+        }
+      ]
+    },
+    {
+      "model_name": "fct_payment_fee_ledger",
+      "schema": "marts",
+      "relation": "marts.fct_payment_fee_ledger",
+      "materialized": "table",
+      "explicit_grain": "1 row per payment_id ledger entry",
+      "description": "Kimball transaction-grain ledger fact table for application fees, reversals, and tuition/stipend disbursements.",
+      "row_count": 5195,
+      "columns": [
+        {
+          "name": "payment_id",
+          "description": "Unique ledger transaction ID."
+        },
+        {
+          "name": "signed_fee_revenue_cad",
+          "description": "Signed fee revenue impact in CAD (+150/+500 for settled fees, -150 for fee reversals)."
+        }
+      ]
+    },
+    {
+      "model_name": "int_ad_click_attribution",
+      "schema": "core",
+      "relation": "core.int_ad_click_attribution",
+      "materialized": "table",
+      "explicit_grain": "1 row per deduplicated click_id with First-Touch, Last-Touch, and Position-Based weights",
+      "description": "Assigns First-Touch, Last-Touch, and Position-Based (40/20/40) attribution weights across stitched ad clicks.",
+      "row_count": 3500,
+      "columns": [
+        {
+          "name": "click_id",
+          "description": "Unique deduplicated click ID."
+        }
+      ]
+    },
+    {
+      "model_name": "int_deferral_lineage_chains",
+      "schema": "core",
+      "relation": "core.int_deferral_lineage_chains",
+      "materialized": "table",
+      "explicit_grain": "1 row per application_id with root_application_id and is_superseded_by_deferral",
+      "description": "Links multi-term intake deferrals (Fall -> Winter -> Fall) to root_application_id and flags superseded applications.",
+      "row_count": 1920,
+      "columns": [
+        {
+          "name": "application_id",
+          "description": "Primary key for application."
+        },
+        {
+          "name": "root_application_id",
+          "description": "Root initial application ID for this applicant's deferral chain."
+        },
+        {
+          "name": "is_superseded_by_deferral",
+          "description": "True when a later intake deferral supersedes this application row."
+        }
+      ]
+    },
+    {
+      "model_name": "int_guarantor_replacement_chains",
+      "schema": "core",
+      "relation": "core.int_guarantor_replacement_chains",
+      "materialized": "table",
+      "explicit_grain": "1 row per guarantor_id with active_guarantor_id and is_superseded_guarantor",
+      "description": "Resolves co-signer/guarantor replacement chains and flags rejected or tombstoned guarantors.",
+      "row_count": 1810,
+      "columns": [
+        {
+          "name": "guarantor_id",
+          "description": "Primary key for guarantor."
+        },
+        {
+          "name": "active_guarantor_id",
+          "description": "Current terminal guarantor ID for the applicant."
+        },
+        {
+          "name": "is_active_guarantor",
+          "description": "True strictly for the single active non-superseded guarantor per applicant."
+        }
+      ]
+    },
+    {
+      "model_name": "int_payment_fee_reconciliation",
+      "schema": "core",
+      "relation": "core.int_payment_fee_reconciliation",
+      "materialized": "table",
+      "explicit_grain": "1 row per payment_id with reversal links and signed_fee_revenue_cad",
+      "description": "Enriches fee and disbursement ledger rows with reversal links and signed net fee revenue.",
+      "row_count": 5195,
+      "columns": [
+        {
+          "name": "payment_id",
+          "description": "Primary key for payment ledger row."
+        }
+      ]
+    },
+    {
+      "model_name": "int_screening_outcomes",
+      "schema": "core",
+      "relation": "core.int_screening_outcomes",
+      "materialized": "table",
+      "explicit_grain": "1 row per (applicant_id, application_id) aggregated across 3 check types",
+      "description": "Aggregates academic, document authenticity, and financial screening checks to one row per applicant.",
+      "row_count": 1500,
+      "columns": [
+        {
+          "name": "applicant_id",
+          "description": "Unique applicant grain."
+        },
+        {
+          "name": "application_id",
+          "description": "Unique active application grain."
+        }
+      ]
+    },
+    {
+      "model_name": "srv_applicant_360",
+      "schema": "serving",
+      "relation": "serving.srv_applicant_360",
+      "materialized": "table",
+      "explicit_grain": "1 row per applicant_id (Hasura GraphQL serving table with lineage breadcrumbs)",
+      "description": "Dedicated serving layer table exposed via Hasura GraphQL for internal product ops tools, providing 1-row-per-applicant 360 state and lineage breadcrumbs.",
+      "row_count": 1500,
+      "columns": [
+        {
+          "name": "applicant_id",
+          "description": "Primary key for Hasura srv_applicant_360_by_pk query."
+        },
+        {
+          "name": "deferral_lineage_breadcrumb",
+          "description": "Chronological intake deferral lineage breadcrumb."
+        },
+        {
+          "name": "guarantor_chain_breadcrumb",
+          "description": "Chronological guarantor replacement chain breadcrumb."
+        }
+      ]
+    },
+    {
+      "model_name": "srv_ops_workqueue",
+      "schema": "serving",
+      "relation": "serving.srv_ops_workqueue",
+      "materialized": "table",
+      "explicit_grain": "1 row per work_item_id (Hasura GraphQL operational review queue)",
+      "description": "Prioritized operational workqueue exposed via Hasura GraphQL for manual deferral lineage review, guarantor replacement audits, and fee reversal checks.",
+      "row_count": 358,
+      "columns": [
+        {
+          "name": "work_item_id",
+          "description": "Unique workqueue item ID."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_ad_clicks_and_utms",
+      "schema": "staging",
+      "relation": "staging.stg_ad_clicks_and_utms",
+      "materialized": "view",
+      "explicit_grain": "1 row per deduplicated click_id stitched to applicant_id",
+      "description": "Deduplicated ad click telemetry stitched to applicant_id across anonymous browser sessions.",
+      "row_count": 3500,
+      "columns": [
+        {
+          "name": "click_id",
+          "description": "Unique deduplicated ad click identifier."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Stitched applicant identifier."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_applicants",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_applicants",
+      "materialized": "view",
+      "explicit_grain": "1 row per canonical applicant_id (latest compacted CDC LSN)",
+      "description": "Latest compacted applicant state per applicant_id from Debezium Postgres CDC.",
+      "row_count": 1500,
+      "columns": [
+        {
+          "name": "applicant_id",
+          "description": "Primary key for international student applicant."
+        },
+        {
+          "name": "kyc_status",
+          "description": "Current KYC verification state."
+        },
+        {
+          "name": "study_permit_status",
+          "description": "Current Canadian study permit / LOA milestone status."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_applications",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_applications",
+      "materialized": "view",
+      "explicit_grain": "1 row per live application_id (tombstone deletes excluded)",
+      "description": "Compacted live academic and loan applications with tombstone deletes removed and parent deferral links resolved.",
+      "row_count": 1920,
+      "columns": [
+        {
+          "name": "application_id",
+          "description": "Primary key for application."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Foreign key to stg_cdc_applicants."
+        },
+        {
+          "name": "intake_cohort",
+          "description": "Target academic intake cohort (e.g., 2026-Winter, 2026-Fall, 2027-Winter)."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_guarantors",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_guarantors",
+      "materialized": "view",
+      "explicit_grain": "1 row per guarantor_id (all co-signer submissions and replacement pointers)",
+      "description": "Compacted guarantor and co-signer records including replacement pointers and tombstone flags.",
+      "row_count": 1810,
+      "columns": [
+        {
+          "name": "guarantor_id",
+          "description": "Primary key for guarantor record."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Foreign key to applicant."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_loan_contracts",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_loan_contracts",
+      "materialized": "view",
+      "explicit_grain": "1 row per loan_id (latest compacted CDC LSN)",
+      "description": "Latest compacted loan contract state per loan_id.",
+      "row_count": 1500,
+      "columns": [
+        {
+          "name": "loan_id",
+          "description": "Primary key for education loan contract."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Foreign key to applicant."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_payments_and_fees",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_payments_and_fees",
+      "materialized": "view",
+      "explicit_grain": "1 row per payment_id (fee collections, reversals, and disbursements)",
+      "description": "Compacted fee payments, reversals, and loan disbursements.",
+      "row_count": 5195,
+      "columns": [
+        {
+          "name": "payment_id",
+          "description": "Primary key for payment or disbursement ledger event."
+        },
+        {
+          "name": "applicant_id",
+          "description": "Foreign key to applicant."
+        }
+      ]
+    },
+    {
+      "model_name": "stg_cdc_screening_checks",
+      "schema": "staging",
+      "relation": "staging.stg_cdc_screening_checks",
+      "materialized": "view",
+      "explicit_grain": "1 row per screening_id (academic, document, financial check)",
+      "description": "Compacted screening checks (academic, document authenticity, financial capacity).",
+      "row_count": 4500,
+      "columns": [
+        {
+          "name": "screening_id",
+          "description": "Primary key for screening check."
+        },
+        {
+          "name": "check_type",
+          "description": "Category of underwriting screening check."
+        }
+      ]
+    }
+  ]
+}

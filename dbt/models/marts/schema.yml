@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: fct_applicant_milestones
+    description: "Kimball fact table at explicit 1-row-per-applicant grain combining SCD2 current state, resolved intake deferral lineage, active guarantor, screening outcomes, and reconciled loan/fee ledger totals."
+    columns:
+      - name: applicant_id
+        description: "Primary key (1 row per canonical applicant, never fanned out by deferrals or guarantor replacements)."
+        tests:
+          - not_null
+          - unique
+      - name: active_application_id
+        description: "Current non-superseded application ID."
+        tests:
+          - not_null
+          - unique
+      - name: active_guarantor_id
+        description: "Current verified/terminal guarantor ID."
+        tests:
+          - not_null
+          - unique
+      - name: loan_id
+        description: "Associated loan contract ID."
+        tests:
+          - not_null
+          - unique
+
+  - name: fct_loan_stage_transitions
+    description: "Kimball accumulating/transactional stage fact table over SCD Type 2 loan contract status versions."
+    columns:
+      - name: loan_version_sk
+        description: "Unique surrogate key per loan status version."
+        tests:
+          - not_null
+          - unique
+      - name: loan_id
+        description: "Loan contract natural key."
+        tests:
+          - not_null
+
+  - name: fct_payment_fee_ledger
+    description: "Kimball transaction-grain ledger fact table for application fees, reversals, and tuition/stipend disbursements."
+    columns:
+      - name: payment_id
+        description: "Unique ledger transaction ID."
+        tests:
+          - not_null
+          - unique
+      - name: signed_fee_revenue_cad
+        description: "Signed fee revenue impact in CAD (+150/+500 for settled fees, -150 for fee reversals)."
+        tests:
+          - not_null
+
+  - name: fct_marketing_attribution
+    description: "Channel-level marketing attribution mart comparing First-Touch, Last-Touch, and Position-Based (40/20/40) funded loans, CAC, and ROAS."
+    columns:
+      - name: channel_name
+        description: "Unique acquisition channel name."
+        tests:
+          - not_null
+          - unique
+
+  - name: agg_cohort_funnel_kpis
+    description: "Executive cohort conversion funnel and financial KPI aggregate table by intake cohort, province, and program category."
+    columns:
+      - name: active_intake_cohort
+        description: "Active intake cohort after resolving deferrals."
+        tests:
+          - not_null
+      - name: province_code
+        description: "Canadian province code of partner DLI."
+        tests:
+          - not_null

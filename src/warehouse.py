@@ -152,7 +152,7 @@ def run_dbt(select: str) -> dict:
         if local_dbt.exists():
             dbt_bin = str(local_dbt)
 
-    cmd = [dbt_bin, "--no-use-colors", "build", "--select", select, "--project-dir", str(ROOT / "dbt")]
+    cmd = [dbt_bin, "--no-use-colors", "build", "--indirect-selection", "cautious", "--select", select, "--project-dir", str(ROOT / "dbt")]
     proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
     output = proc.stdout + proc.stderr
     if proc.returncode != 0:

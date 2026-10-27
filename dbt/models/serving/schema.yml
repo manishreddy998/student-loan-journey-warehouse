@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: srv_applicant_360
+    description: "Dedicated serving layer table exposed via Hasura GraphQL for internal product ops tools, providing 1-row-per-applicant 360 state and lineage breadcrumbs."
+    columns:
+      - name: applicant_id
+        description: "Primary key for Hasura srv_applicant_360_by_pk query."
+        tests:
+          - not_null
+          - unique
+      - name: deferral_lineage_breadcrumb
+        description: "Chronological intake deferral lineage breadcrumb."
+        tests:
+          - not_null
+      - name: guarantor_chain_breadcrumb
+        description: "Chronological guarantor replacement chain breadcrumb."
+        tests:
+          - not_null
+
+  - name: srv_ops_workqueue
+    description: "Prioritized operational workqueue exposed via Hasura GraphQL for manual deferral lineage review, guarantor replacement audits, and fee reversal checks."
+    columns:
+      - name: work_item_id
+        description: "Unique workqueue item ID."
+        tests:
+          - not_null
+          - unique
