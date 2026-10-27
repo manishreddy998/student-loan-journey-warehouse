@@ -1,0 +1,57 @@
+{
+  "seed": 42,
+  "corpus": {
+    "partner_dli_institutions": 30,
+    "canonical_applicants": 1500,
+    "funded_applicants": 1200,
+    "live_applications_post_tombstone": 1920,
+    "debezium_cdc_envelope_events": 25760,
+    "raw_ad_click_events": 3640,
+    "scd2_applicant_versions": 4500,
+    "scd2_loan_status_versions": 5400
+  },
+  "warehouse_reconciliation": {
+    "scored_fields_total": 12000,
+    "scored_fields_matched": 12000,
+    "field_reconciliation_accuracy": 1.0,
+    "funded_principal_cad_warehouse": 56550000.0,
+    "funded_principal_cad_truth": 56550000.0,
+    "disbursed_cad_warehouse": 56550000.0,
+    "disbursed_cad_truth": 56550000.0,
+    "net_fee_revenue_cad_warehouse": 810750.0,
+    "net_fee_revenue_cad_truth": 810750.0
+  },
+  "lineage_and_cdc_defects_caught": {
+    "duplicate_kafka_deliveries_removed": "340 of 340",
+    "out_of_order_lsn_events_rejected": "180 of 180",
+    "tombstone_deletes_applied": "65 of 65",
+    "superseded_deferral_applications_excluded": "420 of 420",
+    "missing_parent_deferrals_auto_linked": "45 of 48 (93.75%)",
+    "ambiguous_deferrals_routed_to_review_queue": "3 of 48",
+    "superseded_guarantors_excluded": "310 of 310",
+    "reversed_fee_transactions_reconciled": "95 of 95 ($14,250 CAD netted)",
+    "duplicate_ad_pixels_deduplicated": "140 of 140",
+    "stitched_anonymous_sessions": "55 of 55",
+    "active_non_superseded_applicants": 1500,
+    "active_verified_guarantors": 1500
+  },
+  "dbt_and_cost_discipline": {
+    "dbt_models_built": 22,
+    "dbt_data_tests_passed": "83 of 83",
+    "bigquery_partitioned_tables": 7,
+    "bytes_scanned_reduction_pct": 86.0
+  },
+  "gold_benchmark": {
+    "questions": 60,
+    "correct": 60,
+    "accuracy": 1.0
+  },
+  "adversarial_break_it_suite": {
+    "questions": 50,
+    "passed": 50,
+    "hostile_summaries_tested": 50,
+    "hostile_summaries_blocked": 50,
+    "uncited_claims_reaching_output": 0
+  },
+  "elapsed_seconds": 0.25
+}
