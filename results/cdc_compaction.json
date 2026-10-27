@@ -1,0 +1,11 @@
+{
+  "elapsed_seconds": 1.98,
+  "total_raw_cdc_events": 25760,
+  "duplicate_kafka_deliveries_removed": 340,
+  "out_of_order_lsn_events_rejected": 180,
+  "tombstone_delete_events_applied": 65,
+  "live_applications_after_tombstones": 1920,
+  "deleted_draft_applications_filtered": 40,
+  "missing_parent_deferrals_auto_linked": 45,
+  "ambiguous_deferrals_in_review_queue": 3
+}
