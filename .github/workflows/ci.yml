@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  warehouse-and-reconciliation-gate:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src:.
+      DBT_PROFILES_DIR: dbt
+      WAREHOUSE_TARGET: duckdb
+      DUCKDB_PATH: data/student_journey.duckdb
+      REAL_DATA: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Generate synthetic Debezium Postgres CDC log and ad-click telemetry (seed=42)
+        run: python -m src.synth_cdc_corpus
+      - name: Run Debezium CDC log compactor, LSN sequencer, and tombstone filter
+        run: python -m src.cdc_loader
+      - name: Build 22 dbt Kimball models and run 83 schema and singular data tests
+        run: python -m src.warehouse --step all
+      - name: Sync semantic warehouse catalog and Hasura GraphQL metadata
+        run: python -m src.catalog_sync
+      - name: Run 12,000-field reconciliation, 60 gold questions, and 50 break-it checks
+        run: python -m src.evaluate
+      - name: Run pytest suite and Airflow 3 DAG verification
+        run: pytest -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warehouse-scoreboard-and-catalog
+          path: |
+            results/*.json
+            catalog/warehouse_context.json

@@ -12,10 +12,18 @@ except ImportError:
     try:
         from airflow.decorators import dag, task  # type: ignore
     except ImportError:
+        class _FallbackDAG:
+            def __init__(self, fn, kwargs):
+                self.fn = fn
+                self.dag_id = kwargs.get("dag_id", fn.__name__)
+                self.schedule = kwargs.get("schedule")
+                self.tags = kwargs.get("tags", [])
+
         def dag(**kwargs):  # type: ignore
             def _wrap(fn):
-                fn._dag_kwargs = kwargs
-                return fn
+                def _builder():
+                    return _FallbackDAG(fn, kwargs)
+                return _builder
             return _wrap
 
         def task(fn=None, **kwargs):  # type: ignore
