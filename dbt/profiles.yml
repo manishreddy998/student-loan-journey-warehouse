@@ -1,0 +1,7 @@
+student_loan_journey:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/student_journey.duckdb') }}"
+      threads: 4

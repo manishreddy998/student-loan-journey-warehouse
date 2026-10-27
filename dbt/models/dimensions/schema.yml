@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: dim_applicant_scd2
+    description: "Kimball SCD Type 2 applicant dimension tracking point-in-time KYC, risk tier, and study permit changes."
+    columns:
+      - name: applicant_version_sk
+        description: "Surrogate key for point-in-time applicant version."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Natural key for applicant."
+        tests:
+          - not_null
+      - name: valid_from
+        description: "Effective start timestamp for this SCD2 version."
+        tests:
+          - not_null
+      - name: valid_to
+        description: "Effective end timestamp (9999-12-31 for current version)."
+        tests:
+          - not_null
+      - name: is_current
+        description: "True if this row is the latest active version for the applicant."
+        tests:
+          - not_null
+
+  - name: dim_loan_status_scd2
+    description: "Kimball SCD Type 2 loan contract dimension tracking underwriting and disbursement state transitions."
+    columns:
+      - name: loan_version_sk
+        description: "Surrogate key for point-in-time loan contract version."
+        tests:
+          - not_null
+          - unique
+      - name: loan_id
+        description: "Natural key for loan contract."
+        tests:
+          - not_null
+      - name: is_current
+        description: "True if this row is the latest active version for the loan contract."
+        tests:
+          - not_null
+
+  - name: dim_program_institution
+    description: "Conformed Kimball dimension for partner post-secondary Designated Learning Institutions (DLIs)."
+    columns:
+      - name: institution_id
+        description: "Primary key for partner DLI institution."
+        tests:
+          - not_null
+          - unique
+      - name: dli_number
+        description: "Official Canadian Designated Learning Institution number."
+        tests:
+          - not_null
+          - unique

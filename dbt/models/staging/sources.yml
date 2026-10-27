@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Compacted Debezium Postgres CDC tables, seed institutions, and marketing click streams."
+    tables:
+      - name: debezium_cdc_log
+        description: "Raw Debezium envelope events with LSN, operation code, and duplicate/out-of-order flags."
+      - name: cdc_applicants_history
+        description: "Ordered CDC state history for international student applicants."
+      - name: cdc_loan_contracts_history
+        description: "Ordered CDC state history for education loan contracts."
+      - name: cdc_applications_latest
+        description: "Compacted latest state per application_id with tombstone flag and resolved parent deferral ID."
+      - name: cdc_screening_checks_latest
+        description: "Compacted latest state per screening_id across academic, document, and financial checks."
+      - name: cdc_guarantors_latest
+        description: "Compacted latest state per guarantor_id including replacement pointers and tombstones."
+      - name: cdc_payments_and_fees_latest
+        description: "Compacted latest state per payment_id across fees, reversals, and loan disbursements."
+      - name: seed_institutions
+        description: "Partner post-secondary Designated Learning Institutions (DLIs) and tuition schedules."
+      - name: ad_click_events
+        description: "Raw Google Ads, Meta Ads, Partner Agent, and organic click telemetry."
+      - name: identity_stitch_map
+        description: "Mapping between pre-signup browser_anon_id cookies and verified applicant_id."
