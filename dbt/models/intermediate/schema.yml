@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: int_deferral_lineage_chains
+    description: "Links multi-term intake deferrals (Fall -> Winter -> Fall) to root_application_id and flags superseded applications."
+    columns:
+      - name: application_id
+        description: "Primary key for application."
+        tests:
+          - not_null
+          - unique
+      - name: root_application_id
+        description: "Root initial application ID for this applicant's deferral chain."
+        tests:
+          - not_null
+      - name: is_superseded_by_deferral
+        description: "True when a later intake deferral supersedes this application row."
+        tests:
+          - not_null
+
+  - name: int_guarantor_replacement_chains
+    description: "Resolves co-signer/guarantor replacement chains and flags rejected or tombstoned guarantors."
+    columns:
+      - name: guarantor_id
+        description: "Primary key for guarantor."
+        tests:
+          - not_null
+          - unique
+      - name: active_guarantor_id
+        description: "Current terminal guarantor ID for the applicant."
+        tests:
+          - not_null
+      - name: is_active_guarantor
+        description: "True strictly for the single active non-superseded guarantor per applicant."
+        tests:
+          - not_null
+
+  - name: int_screening_outcomes
+    description: "Aggregates academic, document authenticity, and financial screening checks to one row per applicant."
+    columns:
+      - name: applicant_id
+        description: "Unique applicant grain."
+        tests:
+          - not_null
+          - unique
+      - name: application_id
+        description: "Unique active application grain."
+        tests:
+          - not_null
+          - unique
+
+  - name: int_payment_fee_reconciliation
+    description: "Enriches fee and disbursement ledger rows with reversal links and signed net fee revenue."
+    columns:
+      - name: payment_id
+        description: "Primary key for payment ledger row."
+        tests:
+          - not_null
+          - unique
+
+  - name: int_ad_click_attribution
+    description: "Assigns First-Touch, Last-Touch, and Position-Based (40/20/40) attribution weights across stitched ad clicks."
+    columns:
+      - name: click_id
+        description: "Unique deduplicated click ID."
+        tests:
+          - not_null
+          - unique
