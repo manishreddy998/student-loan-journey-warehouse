@@ -1,0 +1,20 @@
+flowchart TB
+  PG[Production Postgres CDC<br/>Debezium and Kafka Connect] --> RAW
+  GA[Google Ads gclid<br/>and Meta Ads fbclid] --> RAW
+  DLI[Partner DLI institutions<br/>and tuition schedules] --> RAW
+  subgraph Pipeline [Airflow 3 and dbt Kimball warehouse]
+    RAW[(Warehouse raw<br/>LSN compacted, tombstones,<br/>deduped ad clicks)] --> STG[dbt staging<br/>typed views and identity stitch]
+    STG --> SCD[dbt SCD Type 2 dimensions<br/>dim_applicant_scd2, dim_loan_status_scd2]
+    STG --> INT[dbt intermediate lineage<br/>deferral chains, guarantor chains,<br/>fee reversals, 40/20/40 attribution]
+    SCD --> MRT[(Kimball fact and agg marts<br/>milestones, stage transitions,<br/>ledger, attribution, cohort KPIs)]
+    INT --> MRT
+    MRT --> SRV[dbt serving layer<br/>srv_applicant_360, srv_ops_workqueue]
+  end
+  subgraph Verify [Reconciliation and serving gate]
+    SRV --> GQL[Hasura GraphQL and FastAPI<br/>ops tools and semantic catalog]
+    MRT --> GATE{Reconciliation gate<br/>every dollar, LSN and cohort<br/>must match ledger receipt}
+    GATE -->|reconciled| BI[Metabase and Streamlit UI]
+    GATE -->|violation| REF[Block build and alert Slack]
+  end
+  BK[60 gold questions and<br/>50 adversarial break it traps] --> GATE
+  BK --> CI[CI fails on any double count or uncited claim]
