@@ -1,0 +1,29 @@
+- table:
+    schema: serving
+    name: srv_applicant_360
+  configuration:
+    custom_root_fields:
+      select: applicant_360
+      select_by_pk: applicant_360_by_pk
+  select_permissions:
+  - role: ops_agent
+    permission:
+      columns: '*'
+      filter: {}
+      limit: 500
+  - role: analytics_reader
+    permission:
+      columns: '*'
+      filter: {}
+- table:
+    schema: serving
+    name: srv_ops_workqueue
+  configuration:
+    custom_root_fields:
+      select: ops_workqueue
+      select_by_pk: ops_workqueue_by_pk
+  select_permissions:
+  - role: ops_agent
+    permission:
+      columns: '*'
+      filter: {}
