@@ -1,0 +1,36 @@
+name: "student_loan_journey"
+version: "1.0.0"
+config-version: 2
+
+profile: "student_loan_journey"
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  student_loan_journey:
+    staging:
+      +schema: staging
+      +materialized: view
+      +tags: ["staging"]
+    dimensions:
+      +schema: dimensions
+      +materialized: table
+      +tags: ["dimensions"]
+    intermediate:
+      +schema: core
+      +materialized: table
+      +tags: ["intermediate"]
+    marts:
+      +schema: marts
+      +materialized: table
+      +tags: ["marts"]
+    serving:
+      +schema: serving
+      +materialized: table
+      +tags: ["serving"]

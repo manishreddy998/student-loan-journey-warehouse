@@ -1,0 +1,103 @@
+version: 2
+
+models:
+  - name: stg_cdc_applicants
+    description: "Latest compacted applicant state per applicant_id from Debezium Postgres CDC."
+    columns:
+      - name: applicant_id
+        description: "Primary key for international student applicant."
+        tests:
+          - not_null
+          - unique
+      - name: kyc_status
+        description: "Current KYC verification state."
+        tests:
+          - not_null
+      - name: study_permit_status
+        description: "Current Canadian study permit / LOA milestone status."
+        tests:
+          - not_null
+
+  - name: stg_cdc_applications
+    description: "Compacted live academic and loan applications with tombstone deletes removed and parent deferral links resolved."
+    columns:
+      - name: application_id
+        description: "Primary key for application."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Foreign key to stg_cdc_applicants."
+        tests:
+          - not_null
+      - name: intake_cohort
+        description: "Target academic intake cohort (e.g., 2026-Winter, 2026-Fall, 2027-Winter)."
+        tests:
+          - not_null
+
+  - name: stg_cdc_screening_checks
+    description: "Compacted screening checks (academic, document authenticity, financial capacity)."
+    columns:
+      - name: screening_id
+        description: "Primary key for screening check."
+        tests:
+          - not_null
+          - unique
+      - name: check_type
+        description: "Category of underwriting screening check."
+        tests:
+          - accepted_values:
+              values: ["academic_eligibility", "document_authenticity", "financial_capacity"]
+
+  - name: stg_cdc_loan_contracts
+    description: "Latest compacted loan contract state per loan_id."
+    columns:
+      - name: loan_id
+        description: "Primary key for education loan contract."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Foreign key to applicant."
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_cdc_guarantors
+    description: "Compacted guarantor and co-signer records including replacement pointers and tombstone flags."
+    columns:
+      - name: guarantor_id
+        description: "Primary key for guarantor record."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Foreign key to applicant."
+        tests:
+          - not_null
+
+  - name: stg_cdc_payments_and_fees
+    description: "Compacted fee payments, reversals, and loan disbursements."
+    columns:
+      - name: payment_id
+        description: "Primary key for payment or disbursement ledger event."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Foreign key to applicant."
+        tests:
+          - not_null
+
+  - name: stg_ad_clicks_and_utms
+    description: "Deduplicated ad click telemetry stitched to applicant_id across anonymous browser sessions."
+    columns:
+      - name: click_id
+        description: "Unique deduplicated ad click identifier."
+        tests:
+          - not_null
+          - unique
+      - name: applicant_id
+        description: "Stitched applicant identifier."
+        tests:
+          - not_null
