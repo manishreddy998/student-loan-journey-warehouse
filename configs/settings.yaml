@@ -1,0 +1,16 @@
+seed: 42
+corpus:
+  institutions: 30
+  applicants: 1500
+  deferral_applicants: 300
+  multi_hop_deferrals: 120
+  missing_parent_app_deferrals: 48
+  guarantor_replacement_chains: 260
+  reversed_fee_events: 95
+  duplicate_cdc_events: 340
+  out_of_order_lsn_events: 180
+  tombstone_delete_events: 65
+  anonymous_stitched_sessions: 55
+real:
+  contracts_cache_path: "/workspace/procurement-evidence-pipeline/data/real_cache/contracts.csv"
+  tenders_cache_path: "/workspace/procurement-evidence-pipeline/data/real_cache/tenders_2025_2026.csv"

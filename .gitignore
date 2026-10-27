@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+data/*.duckdb
+data/*.duckdb.wal
+data/cdc_events/
+data/ground_truth/
+data/real_cache/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/

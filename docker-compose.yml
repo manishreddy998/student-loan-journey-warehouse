@@ -1,0 +1,9 @@
+services:
+  warehouse:
+    build: .
+    ports:
+      - "8501:8501"
+      - "8130:8130"
+    environment:
+      - WAREHOUSE_TARGET=duckdb
+      - DUCKDB_PATH=/app/data/student_journey.duckdb
