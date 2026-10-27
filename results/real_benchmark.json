@@ -1,0 +1,105 @@
+{
+  "note": "Real public data run measures ingestion throughput and classification speed. Real public filings have no ground-truth entity key.",
+  "contact_columns_loaded": 0,
+  "federal_contracts_benchmark": {
+    "rows_scanned": 1313327,
+    "ircc_and_esdc_rows": 62407,
+    "education_and_visa_service_rows": 45753,
+    "combined_matched_rows": 103913,
+    "scan_seconds": 5.57,
+    "rows_per_sec": 235739,
+    "sample_records": [
+      {
+        "reference_number": "C-2020-2021-Q4-00002",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "11300",
+        "contract_date": "2020-09-01"
+      },
+      {
+        "reference_number": "C-2021-2022-Q2-00001",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "13500",
+        "contract_date": "2020-09-08"
+      },
+      {
+        "reference_number": "C-2021-2022-Q3-00007",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "18970.88",
+        "contract_date": "2021-12-02"
+      },
+      {
+        "reference_number": "C-2021-2022-Q4-00004",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "32767.87",
+        "contract_date": "2021-12-02"
+      },
+      {
+        "reference_number": "C-2021-2022-Q4-00013",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "12693.24",
+        "contract_date": "2022-03-30"
+      },
+      {
+        "reference_number": "C-2022-2023-Q2-00010",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0446 Training consultants",
+        "contract_value": "230668.59",
+        "contract_date": "2022-08-31"
+      },
+      {
+        "reference_number": "C-2022-2023-Q2-00017",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "0447 Tuition fees and costs of attending courses including semina",
+        "contract_value": "12209.2",
+        "contract_date": "2022-09-29"
+      },
+      {
+        "reference_number": "C-2022-2023-Q3-00002",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "Tuition fees and costs of attending courses including seminars not elsewhere specified",
+        "contract_value": "8220.71",
+        "contract_date": "2022-04-26"
+      },
+      {
+        "reference_number": "C-2022-2023-Q3-00003",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "Tuition fees and costs of attending courses including seminars not elsewhere specified",
+        "contract_value": "12244.84",
+        "contract_date": "2022-04-26"
+      },
+      {
+        "reference_number": "C-2022-2023-Q4-00011",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "Training consultants",
+        "contract_value": "39091.5",
+        "contract_date": "2023-02-27"
+      },
+      {
+        "reference_number": "C-2022-2023-Q4-00018",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "Tuition fees and costs of attending courses including seminars not elsewhere specified",
+        "contract_value": "19953.91",
+        "contract_date": "2023-03-10"
+      },
+      {
+        "reference_number": "C-2023-2024-Q2-00004",
+        "owner_org_title": "Accessibility Standards Canada | Normes d\u2019accessibilit\u00e9 Canada",
+        "description_en": "Tuition fees and costs of attending courses including seminars not elsewhere specified",
+        "contract_value": "17028.0",
+        "contract_date": "2023-08-09"
+      }
+    ]
+  },
+  "public_tenders_benchmark": {
+    "rows_scanned": 7199,
+    "education_tenders_matched": 172,
+    "scan_seconds": 0.49,
+    "rows_per_sec": 14731
+  },
+  "total_seconds": 6.82
+}
